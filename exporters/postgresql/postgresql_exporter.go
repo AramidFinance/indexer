@@ -22,6 +22,7 @@ import (
 )
 
 const exporterName = "postgresql"
+const MaxDeleteChanSize = 300
 
 type postgresqlExporter struct {
 	round  uint64
@@ -82,7 +83,9 @@ func (exp *postgresqlExporter) Init(cfg plugins.PluginConfig, logger *logrus.Log
 	exp.ctx, exp.cf = context.WithCancel(context.Background())
 	// if data pruning is enabled
 	if !exp.cfg.Test && exp.cfg.Delete.Rounds > 0 {
-		exp.ch = make(chan uint64)
+		// use buffered channel or Receive() could be blocked
+		// if delete takes a long time
+		exp.ch = make(chan uint64, MaxDeleteChanSize)
 		exp.wg.Add(1)
 		exp.dm = util.MakeDataManager(exp.ctx, &exp.cfg.Delete, exp.db, logger)
 		logger.Info("Data pruning option is enabled")
@@ -134,7 +137,7 @@ func (exp *postgresqlExporter) Receive(exportData data.BlockData) error {
 	if err := exp.db.AddBlock(&vb); err != nil {
 		return err
 	}
-	if exp.ch != nil {
+	if exp.ch != nil && !exp.dm.Closed() {
 		exp.ch <- exp.round
 	}
 	exp.round = exportData.Round() + 1
