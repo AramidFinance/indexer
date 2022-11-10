@@ -12,6 +12,7 @@ import (
 	"github.com/algorand/go-algorand/data/transactions/logic"
 	"github.com/algorand/go-algorand/ledger/ledgercore"
 	"github.com/algorand/go-algorand/protocol"
+	itypes "github.com/algorand/indexer/types"
 	"github.com/jackc/pgx/v4"
 
 	"github.com/algorand/indexer/idb"
@@ -153,7 +154,7 @@ func addBlockHeader(blockHeader *bookkeeping.BlockHeader, batch *pgx.Batch) {
 		blockHeader.RewardsLevel, encoding.EncodeBlockHeader(*blockHeader))
 }
 
-func setSpecialAccounts(addresses transactions.SpecialAddresses, batch *pgx.Batch) {
+func setSpecialAccounts(addresses itypes.SpecialAddresses, batch *pgx.Batch) {
 	j := encoding.EncodeSpecialAddresses(addresses)
 	batch.Queue(setSpecialAccountsStmtName, j)
 }
@@ -329,9 +330,9 @@ func (w *Writer) AddBlock0(block *bookkeeping.Block) error {
 	var batch pgx.Batch
 
 	addBlockHeader(&block.BlockHeader, &batch)
-	specialAddresses := transactions.SpecialAddresses{
-		FeeSink:     block.FeeSink,
-		RewardsPool: block.RewardsPool,
+	specialAddresses := itypes.SpecialAddresses{
+		FeeSink:     types.Address(block.FeeSink),
+		RewardsPool: types.Address(block.RewardsPool),
 	}
 	setSpecialAccounts(specialAddresses, &batch)
 
@@ -359,9 +360,9 @@ func (w *Writer) AddBlock(block *bookkeeping.Block, modifiedTxns []transactions.
 	var batch pgx.Batch
 
 	addBlockHeader(&block.BlockHeader, &batch)
-	specialAddresses := transactions.SpecialAddresses{
-		FeeSink:     block.FeeSink,
-		RewardsPool: block.RewardsPool,
+	specialAddresses := itypes.SpecialAddresses{
+		FeeSink:     types.Address(block.FeeSink),
+		RewardsPool: types.Address(block.RewardsPool),
 	}
 	setSpecialAccounts(specialAddresses, &batch)
 	{
