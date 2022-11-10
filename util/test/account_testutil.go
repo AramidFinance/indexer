@@ -87,19 +87,19 @@ func MakeAssetConfigTxn(configid, total, decimals uint64, defaultFrozen bool, un
 }
 
 // MakeAssetFreezeTxn create an asset freeze/unfreeze transaction.
-func MakeAssetFreezeTxn(assetid uint64, frozen bool, sender, freezeAccount basics.Address) transactions.SignedTxnWithAD {
+func MakeAssetFreezeTxn(assetid uint64, frozen bool, sender, freezeAccount types.Address) transactions.SignedTxnWithAD {
 	return transactions.SignedTxnWithAD{
 		SignedTxn: transactions.SignedTxn{
 			Txn: transactions.Transaction{
 				Type: "afrz",
 				Header: transactions.Header{
-					Sender:      sender,
+					Sender:      basics.Address(sender),
 					Fee:         basics.MicroAlgos{Raw: 1000},
 					GenesisHash: GenesisHash,
 					Note:        ArbitraryString(),
 				},
 				AssetFreezeTxnFields: transactions.AssetFreezeTxnFields{
-					FreezeAccount: freezeAccount,
+					FreezeAccount: basics.Address(freezeAccount),
 					FreezeAsset:   basics.AssetIndex(assetid),
 					AssetFrozen:   frozen,
 				},
@@ -110,13 +110,13 @@ func MakeAssetFreezeTxn(assetid uint64, frozen bool, sender, freezeAccount basic
 }
 
 // MakeAssetTransferTxn creates an asset transfer transaction.
-func MakeAssetTransferTxn(assetid, amt uint64, sender, receiver, close basics.Address) transactions.SignedTxnWithAD {
+func MakeAssetTransferTxn(assetid, amt uint64, sender, receiver, close types.Address) transactions.SignedTxnWithAD {
 	return transactions.SignedTxnWithAD{
 		SignedTxn: transactions.SignedTxn{
 			Txn: transactions.Transaction{
 				Type: "axfer",
 				Header: transactions.Header{
-					Sender:      sender,
+					Sender:      basics.Address(sender),
 					Fee:         basics.MicroAlgos{Raw: 1000},
 					GenesisHash: GenesisHash,
 					Note:        ArbitraryString(),
@@ -126,8 +126,8 @@ func MakeAssetTransferTxn(assetid, amt uint64, sender, receiver, close basics.Ad
 					AssetAmount: amt,
 					//only used for clawback transactions
 					//AssetSender:   basics.Address{},
-					AssetReceiver: receiver,
-					AssetCloseTo:  close,
+					AssetReceiver: basics.Address(receiver),
+					AssetCloseTo:  basics.Address(close),
 				},
 			},
 			Sig: Signature,
@@ -137,7 +137,7 @@ func MakeAssetTransferTxn(assetid, amt uint64, sender, receiver, close basics.Ad
 
 // MakeAssetOptInTxn makes a transaction that opts in an asset.
 func MakeAssetOptInTxn(assetid uint64, address types.Address) transactions.SignedTxnWithAD {
-	return MakeAssetTransferTxn(assetid, 0, basics.Address(address), basics.Address(address), basics.Address{})
+	return MakeAssetTransferTxn(assetid, 0, address, address, types.Address{})
 }
 
 // MakeAssetDestroyTxn makes a transaction that destroys an asset.
@@ -215,7 +215,7 @@ func MakeCreateAppTxn(sender types.Address) transactions.SignedTxnWithAD {
 }
 
 // MakeComplexCreateAppTxn makes a transaction that creates an arbitrary app. When assemblerVersion is set to 0, use the AssemblerDefaultVersion.
-func MakeComplexCreateAppTxn(sender basics.Address, approval, clear string, assemblerVersion uint64) (transactions.SignedTxnWithAD, error) {
+func MakeComplexCreateAppTxn(sender types.Address, approval, clear string, assemblerVersion uint64) (transactions.SignedTxnWithAD, error) {
 	// Create a transaction with ExtraProgramPages field set to 1
 	approvalOps, err := logic.AssembleStringWithVersion(approval, assemblerVersion)
 	if err != nil {
@@ -231,7 +231,7 @@ func MakeComplexCreateAppTxn(sender basics.Address, approval, clear string, asse
 			Txn: transactions.Transaction{
 				Type: "appl",
 				Header: transactions.Header{
-					Sender:      sender,
+					Sender:      basics.Address(sender),
 					GenesisHash: GenesisHash,
 				},
 				ApplicationCallTxnFields: transactions.ApplicationCallTxnFields{
@@ -333,7 +333,7 @@ func MakeSimpleAppCallTxn(appid uint64, sender basics.Address) transactions.Sign
 }
 
 // MakeAppCallTxnWithBoxes makes an appl transaction with a NoOp upon completion.
-func MakeAppCallTxnWithBoxes(appid uint64, sender basics.Address, appArgs []string, boxNames []string) transactions.SignedTxnWithAD {
+func MakeAppCallTxnWithBoxes(appid uint64, sender types.Address, appArgs []string, boxNames []string) transactions.SignedTxnWithAD {
 	appArgBytes := [][]byte{}
 	for _, appArg := range appArgs {
 		appArgBytes = append(appArgBytes, []byte(appArg))
@@ -348,7 +348,7 @@ func MakeAppCallTxnWithBoxes(appid uint64, sender basics.Address, appArgs []stri
 			Txn: transactions.Transaction{
 				Type: "appl",
 				Header: transactions.Header{
-					Sender:      sender,
+					Sender:      basics.Address(sender),
 					GenesisHash: GenesisHash,
 				},
 				ApplicationCallTxnFields: transactions.ApplicationCallTxnFields{

@@ -1715,7 +1715,7 @@ func (db *IndexerDb) checkAccountResourceLimit(ctx context.Context, tx pgx.Tx, o
 			resultCount += totalAppParams
 		}
 		if resultCount > opts.MaxResources {
-			var aaddr basics.Address
+			var aaddr sdk.Address
 			copy(aaddr[:], addr)
 			return idb.MaxAPIResourcesPerAccountError{
 				Address:             aaddr,
