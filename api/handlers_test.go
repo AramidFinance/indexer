@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/algorand/go-algorand-sdk/types"
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -266,7 +267,7 @@ func TestValidateTransactionFilter(t *testing.T) {
 		{
 			name: "Zero address close address role",
 			filter: idb.TransactionFilter{
-				Address:     addrSlice(basics.Address{}),
+				Address:     addrSlice(types.Address{}),
 				AddressRole: idb.AddressRoleSender | idb.AddressRoleCloseRemainderTo,
 			},
 			errorContains: []string{errZeroAddressCloseRemainderToRole},
@@ -274,7 +275,7 @@ func TestValidateTransactionFilter(t *testing.T) {
 		{
 			name: "Zero address asset sender and asset close address role",
 			filter: idb.TransactionFilter{
-				Address:     addrSlice(basics.Address{}),
+				Address:     addrSlice(types.Address{}),
 				AddressRole: idb.AddressRoleAssetSender | idb.AddressRoleAssetCloseTo,
 			},
 			errorContains: []string{

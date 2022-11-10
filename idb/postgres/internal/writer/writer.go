@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/algorand/go-algorand-sdk/types"
-	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/data/transactions"
 	"github.com/algorand/go-algorand/data/transactions/logic"
@@ -166,18 +165,18 @@ type sigTypeDelta struct {
 	value   idb.SigType
 }
 
-func getSigTypeDeltas(payset []transactions.SignedTxnInBlock) (map[basics.Address]sigTypeDelta, error) {
-	res := make(map[basics.Address]sigTypeDelta, len(payset))
+func getSigTypeDeltas(payset []transactions.SignedTxnInBlock) (map[types.Address]sigTypeDelta, error) {
+	res := make(map[types.Address]sigTypeDelta, len(payset))
 
 	for i := range payset {
-		if payset[i].Txn.RekeyTo == (basics.Address{}) && payset[i].Txn.Type != protocol.StateProofTx {
+		if types.Address(payset[i].Txn.RekeyTo) == (types.Address{}) && payset[i].Txn.Type != protocol.StateProofTx {
 			sigtype, err := idb.SignatureType(&payset[i].SignedTxn)
 			if err != nil {
 				return nil, fmt.Errorf("getSigTypeDelta() err: %w", err)
 			}
-			res[payset[i].Txn.Sender] = sigTypeDelta{present: true, value: sigtype}
+			res[types.Address(payset[i].Txn.Sender)] = sigTypeDelta{present: true, value: sigtype}
 		} else {
-			res[payset[i].Txn.Sender] = sigTypeDelta{}
+			res[types.Address(payset[i].Txn.Sender)] = sigTypeDelta{}
 		}
 	}
 
@@ -189,7 +188,7 @@ type optionalSigTypeDelta struct {
 	value   sigTypeDelta
 }
 
-func writeAccount(round types.Round, address basics.Address, accountData ledgercore.AccountData, sigtypeDelta optionalSigTypeDelta, batch *pgx.Batch) {
+func writeAccount(round types.Round, address types.Address, accountData ledgercore.AccountData, sigtypeDelta optionalSigTypeDelta, batch *pgx.Batch) {
 	sigtypeFunc := func(delta sigTypeDelta) *idb.SigType {
 		if !delta.present {
 			return nil
@@ -275,15 +274,15 @@ func writeAppResource(round types.Round, resource *ledgercore.AppResourceRecord,
 	}
 }
 
-func writeAccountDeltas(round types.Round, accountDeltas *ledgercore.AccountDeltas, sigtypeDeltas map[basics.Address]sigTypeDelta, batch *pgx.Batch) {
+func writeAccountDeltas(round types.Round, accountDeltas *ledgercore.AccountDeltas, sigtypeDeltas map[types.Address]sigTypeDelta, batch *pgx.Batch) {
 	// Update `account` table.
 	for i := 0; i < accountDeltas.Len(); i++ {
 		address, accountData := accountDeltas.GetByIdx(i)
 
 		var sigtypeDelta optionalSigTypeDelta
-		sigtypeDelta.value, sigtypeDelta.present = sigtypeDeltas[address]
+		sigtypeDelta.value, sigtypeDelta.present = sigtypeDeltas[types.Address(address)]
 
-		writeAccount(round, address, accountData, sigtypeDelta, batch)
+		writeAccount(round, types.Address(address), accountData, sigtypeDelta, batch)
 	}
 
 	// Update `asset` and `account_asset` tables.

@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/algorand/go-algorand-sdk/types"
 	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
 	"github.com/algorand/go-algorand/data/transactions"
@@ -509,7 +510,7 @@ func signedTxnWithAdToTransaction(stxn *transactions.SignedTxnWithAD, extra rowD
 	var localStateDelta *[]generated.AccountStateDelta
 	type tuple struct {
 		key     uint64
-		address basics.Address
+		address types.Address
 	}
 	if len(stxn.ApplyData.EvalDelta.LocalDeltas) > 0 {
 		keys := make([]tuple, 0)
@@ -517,10 +518,10 @@ func signedTxnWithAdToTransaction(stxn *transactions.SignedTxnWithAD, extra rowD
 			if k == 0 {
 				keys = append(keys, tuple{
 					key:     0,
-					address: stxn.Txn.Sender,
+					address: types.Address(stxn.Txn.Sender),
 				})
 			} else {
-				addr := basics.Address{}
+				addr := types.Address{}
 				copy(addr[:], stxn.Txn.Accounts[k-1][:])
 				keys = append(keys, tuple{
 					key:     k,

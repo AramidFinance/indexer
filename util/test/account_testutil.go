@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 
+	"github.com/algorand/go-algorand-sdk/types"
 	"github.com/algorand/go-algorand/config"
 	"github.com/algorand/go-algorand/crypto"
 	"github.com/algorand/go-algorand/data/basics"
@@ -39,26 +40,26 @@ var (
 )
 
 // DecodeAddressOrPanic is a helper to ensure addresses are initialized.
-func DecodeAddressOrPanic(addr string) basics.Address {
+func DecodeAddressOrPanic(addr string) types.Address {
 	if addr == "" {
-		return basics.Address{}
+		return types.Address{}
 	}
 
 	result, err := basics.UnmarshalChecksumAddress(addr)
 	if err != nil {
 		panic(fmt.Sprintf("Failed to decode address: '%s'", addr))
 	}
-	return result
+	return types.Address(result)
 }
 
 // MakeAssetConfigTxn is a helper to ensure test asset config are initialized.
-func MakeAssetConfigTxn(configid, total, decimals uint64, defaultFrozen bool, unitName, assetName, url string, addr basics.Address) transactions.SignedTxnWithAD {
+func MakeAssetConfigTxn(configid, total, decimals uint64, defaultFrozen bool, unitName, assetName, url string, addr types.Address) transactions.SignedTxnWithAD {
 	return transactions.SignedTxnWithAD{
 		SignedTxn: transactions.SignedTxn{
 			Txn: transactions.Transaction{
 				Type: "acfg",
 				Header: transactions.Header{
-					Sender:      addr,
+					Sender:      basics.Address(addr),
 					Fee:         basics.MicroAlgos{Raw: 1000},
 					GenesisHash: GenesisHash,
 					Note:        ArbitraryString(),
@@ -73,10 +74,10 @@ func MakeAssetConfigTxn(configid, total, decimals uint64, defaultFrozen bool, un
 						AssetName:     assetName,
 						URL:           url,
 						MetadataHash:  [32]byte{},
-						Manager:       addr,
-						Reserve:       addr,
-						Freeze:        addr,
-						Clawback:      addr,
+						Manager:       basics.Address(addr),
+						Reserve:       basics.Address(addr),
+						Freeze:        basics.Address(addr),
+						Clawback:      basics.Address(addr),
 					},
 				},
 			},
@@ -135,18 +136,18 @@ func MakeAssetTransferTxn(assetid, amt uint64, sender, receiver, close basics.Ad
 }
 
 // MakeAssetOptInTxn makes a transaction that opts in an asset.
-func MakeAssetOptInTxn(assetid uint64, address basics.Address) transactions.SignedTxnWithAD {
-	return MakeAssetTransferTxn(assetid, 0, address, address, basics.Address{})
+func MakeAssetOptInTxn(assetid uint64, address types.Address) transactions.SignedTxnWithAD {
+	return MakeAssetTransferTxn(assetid, 0, basics.Address(address), basics.Address(address), basics.Address{})
 }
 
 // MakeAssetDestroyTxn makes a transaction that destroys an asset.
-func MakeAssetDestroyTxn(assetID uint64, sender basics.Address) transactions.SignedTxnWithAD {
+func MakeAssetDestroyTxn(assetID uint64, sender types.Address) transactions.SignedTxnWithAD {
 	return transactions.SignedTxnWithAD{
 		SignedTxn: transactions.SignedTxn{
 			Txn: transactions.Transaction{
 				Type: "acfg",
 				Header: transactions.Header{
-					Sender:      sender,
+					Sender:      basics.Address(sender),
 					GenesisHash: GenesisHash,
 					Note:        ArbitraryString(),
 				},
@@ -161,23 +162,23 @@ func MakeAssetDestroyTxn(assetID uint64, sender basics.Address) transactions.Sig
 
 // MakePaymentTxn creates an algo transfer transaction.
 func MakePaymentTxn(fee, amt, closeAmt, sendRewards, receiveRewards,
-	closeRewards uint64, sender, receiver, close, rekeyTo basics.Address) transactions.SignedTxnWithAD {
+	closeRewards uint64, sender, receiver, close, rekeyTo types.Address) transactions.SignedTxnWithAD {
 	return transactions.SignedTxnWithAD{
 		SignedTxn: transactions.SignedTxn{
 			Txn: transactions.Transaction{
 				Type: "pay",
 				Header: transactions.Header{
-					Sender:      sender,
+					Sender:      basics.Address(sender),
 					Fee:         basics.MicroAlgos{Raw: fee},
 					GenesisHash: GenesisHash,
-					RekeyTo:     rekeyTo,
+					RekeyTo:     basics.Address(rekeyTo),
 					LastValid:   10,
 					Note:        ArbitraryString(),
 				},
 				PaymentTxnFields: transactions.PaymentTxnFields{
-					Receiver:         receiver,
+					Receiver:         basics.Address(receiver),
 					Amount:           basics.MicroAlgos{Raw: amt},
-					CloseRemainderTo: close,
+					CloseRemainderTo: basics.Address(close),
 				},
 			},
 			Sig: Signature,
@@ -192,14 +193,14 @@ func MakePaymentTxn(fee, amt, closeAmt, sendRewards, receiveRewards,
 }
 
 // MakeCreateAppTxn makes a transaction that creates a simple application.
-func MakeCreateAppTxn(sender basics.Address) transactions.SignedTxnWithAD {
+func MakeCreateAppTxn(sender types.Address) transactions.SignedTxnWithAD {
 	// Create a transaction with ExtraProgramPages field set to 1
 	return transactions.SignedTxnWithAD{
 		SignedTxn: transactions.SignedTxn{
 			Txn: transactions.Transaction{
 				Type: "appl",
 				Header: transactions.Header{
-					Sender:      sender,
+					Sender:      basics.Address(sender),
 					GenesisHash: GenesisHash,
 					Note:        ArbitraryString(),
 				},
@@ -244,13 +245,13 @@ func MakeComplexCreateAppTxn(sender basics.Address, approval, clear string, asse
 }
 
 // MakeAppDestroyTxn makes a transaction that destroys an app.
-func MakeAppDestroyTxn(appid uint64, sender basics.Address) transactions.SignedTxnWithAD {
+func MakeAppDestroyTxn(appid uint64, sender types.Address) transactions.SignedTxnWithAD {
 	return transactions.SignedTxnWithAD{
 		SignedTxn: transactions.SignedTxn{
 			Txn: transactions.Transaction{
 				Type: "appl",
 				Header: transactions.Header{
-					Sender:      sender,
+					Sender:      basics.Address(sender),
 					GenesisHash: GenesisHash,
 					Note:        ArbitraryString(),
 				},
@@ -267,13 +268,13 @@ func MakeAppDestroyTxn(appid uint64, sender basics.Address) transactions.SignedT
 }
 
 // MakeAppOptInTxn makes a transaction that opts in an app.
-func MakeAppOptInTxn(appid uint64, sender basics.Address) transactions.SignedTxnWithAD {
+func MakeAppOptInTxn(appid uint64, sender types.Address) transactions.SignedTxnWithAD {
 	return transactions.SignedTxnWithAD{
 		SignedTxn: transactions.SignedTxn{
 			Txn: transactions.Transaction{
 				Type: "appl",
 				Header: transactions.Header{
-					Sender:      sender,
+					Sender:      basics.Address(sender),
 					GenesisHash: GenesisHash,
 					Note:        ArbitraryString(),
 				},
@@ -375,7 +376,7 @@ func MakeAppCallTxnWithLogs(appid uint64, sender basics.Address, logs []string) 
 // |- application call
 //    |- asset transfer
 //    |- application call
-func MakeAppCallWithInnerTxn(appSender, paymentSender, paymentReceiver, assetSender, assetReceiver basics.Address) transactions.SignedTxnWithAD {
+func MakeAppCallWithInnerTxn(appSender, paymentSender, paymentReceiver, assetSender, assetReceiver types.Address) transactions.SignedTxnWithAD {
 	createApp := MakeCreateAppTxn(appSender)
 
 	// In order to simplify the test,
@@ -388,11 +389,11 @@ func MakeAppCallWithInnerTxn(appSender, paymentSender, paymentReceiver, assetSen
 				Txn: transactions.Transaction{
 					Type: protocol.PaymentTx,
 					Header: transactions.Header{
-						Sender: paymentSender,
+						Sender: basics.Address(paymentSender),
 						Note:   ArbitraryString(),
 					},
 					PaymentTxnFields: transactions.PaymentTxnFields{
-						Receiver: paymentReceiver,
+						Receiver: basics.Address(paymentReceiver),
 						Amount:   basics.MicroAlgos{Raw: 12},
 					},
 				},
@@ -403,7 +404,7 @@ func MakeAppCallWithInnerTxn(appSender, paymentSender, paymentReceiver, assetSen
 				Txn: transactions.Transaction{
 					Type: protocol.ApplicationCallTx,
 					Header: transactions.Header{
-						Sender: assetSender,
+						Sender: basics.Address(assetSender),
 						Note:   ArbitraryString(),
 					},
 					ApplicationCallTxnFields: transactions.ApplicationCallTxnFields{
@@ -424,18 +425,18 @@ func MakeAppCallWithInnerTxn(appSender, paymentSender, paymentReceiver, assetSen
 								Txn: transactions.Transaction{
 									Type: protocol.AssetTransferTx,
 									Header: transactions.Header{
-										Sender: assetSender,
+										Sender: basics.Address(assetSender),
 										Note:   ArbitraryString(),
 									},
 									AssetTransferTxnFields: transactions.AssetTransferTxnFields{
-										AssetReceiver: assetReceiver,
+										AssetReceiver: basics.Address(assetReceiver),
 										AssetAmount:   456,
 									},
 								},
 							},
 						},
 						// Inner application call
-						MakeSimpleAppCallTxn(789, assetSender),
+						MakeSimpleAppCallTxn(789, basics.Address(assetSender)),
 					},
 				},
 			},
@@ -453,7 +454,7 @@ func MakeAppCallWithInnerTxn(appSender, paymentSender, paymentReceiver, assetSen
 //   |- application call
 //   |- application call
 //   |- application call
-func MakeAppCallWithMultiLogs(appSender basics.Address) transactions.SignedTxnWithAD {
+func MakeAppCallWithMultiLogs(appSender types.Address) transactions.SignedTxnWithAD {
 	createApp := MakeCreateAppTxn(appSender)
 
 	// Add a log to the outer appl call
@@ -469,7 +470,7 @@ func MakeAppCallWithMultiLogs(appSender basics.Address) transactions.SignedTxnWi
 				Txn: transactions.Transaction{
 					Type: protocol.ApplicationCallTx,
 					Header: transactions.Header{
-						Sender: appSender,
+						Sender: basics.Address(appSender),
 						Note:   ArbitraryString(),
 					},
 					ApplicationCallTxnFields: transactions.ApplicationCallTxnFields{
@@ -483,7 +484,7 @@ func MakeAppCallWithMultiLogs(appSender basics.Address) transactions.SignedTxnWi
 				EvalDelta: transactions.EvalDelta{
 					InnerTxns: []transactions.SignedTxnWithAD{
 						// Inner application call
-						MakeSimpleAppCallTxn(789, appSender),
+						MakeSimpleAppCallTxn(789, basics.Address(appSender)),
 					},
 					Logs: []string{
 						"testing inner log",
@@ -492,15 +493,15 @@ func MakeAppCallWithMultiLogs(appSender basics.Address) transactions.SignedTxnWi
 				},
 			},
 		},
-		MakeAppCallTxnWithLogs(222, appSender, []string{
+		MakeAppCallTxnWithLogs(222, basics.Address(appSender), []string{
 			"testing multiple logs 1",
 			"appId 222 log 1",
 		}),
-		MakeAppCallTxnWithLogs(222, appSender, []string{
+		MakeAppCallTxnWithLogs(222, basics.Address(appSender), []string{
 			"testing multiple logs 2",
 			"appId 222 log 2",
 		}),
-		MakeAppCallTxnWithLogs(222, appSender, []string{
+		MakeAppCallTxnWithLogs(222, basics.Address(appSender), []string{
 			"testing multiple logs 3",
 			"appId 222 log 3",
 		}),
@@ -513,7 +514,7 @@ func MakeAppCallWithMultiLogs(appSender basics.Address) transactions.SignedTxnWi
 // application create
 //   |- application call
 //     |- application create
-func MakeAppCallWithInnerAppCall(appSender basics.Address) transactions.SignedTxnWithAD {
+func MakeAppCallWithInnerAppCall(appSender types.Address) transactions.SignedTxnWithAD {
 	createApp := MakeCreateAppTxn(appSender)
 
 	// Add a log to the outer appl call
@@ -534,7 +535,7 @@ func MakeAppCallWithInnerAppCall(appSender basics.Address) transactions.SignedTx
 				Txn: transactions.Transaction{
 					Type: protocol.ApplicationCallTx,
 					Header: transactions.Header{
-						Sender: appSender,
+						Sender: basics.Address(appSender),
 						Note:   ArbitraryString(),
 					},
 					ApplicationCallTxnFields: transactions.ApplicationCallTxnFields{
@@ -556,7 +557,7 @@ func MakeAppCallWithInnerAppCall(appSender basics.Address) transactions.SignedTx
 								Txn: transactions.Transaction{
 									Type: protocol.ApplicationCallTx,
 									Header: transactions.Header{
-										Sender: appSender,
+										Sender: basics.Address(appSender),
 										Note:   ArbitraryString(),
 									},
 									ApplicationCallTxnFields: transactions.ApplicationCallTxnFields{
@@ -572,7 +573,7 @@ func MakeAppCallWithInnerAppCall(appSender basics.Address) transactions.SignedTx
 								Txn: transactions.Transaction{
 									Type: "appl",
 									Header: transactions.Header{
-										Sender:      appSender,
+										Sender:      basics.Address(appSender),
 										GenesisHash: GenesisHash,
 										Note:        ArbitraryString(),
 									},
@@ -608,8 +609,8 @@ func MakeBlockForTxns(prevHeader bookkeeping.BlockHeader, inputs ...*transaction
 	res := bookkeeping.MakeBlock(prevHeader)
 
 	res.RewardsState = bookkeeping.RewardsState{
-		FeeSink:     FeeAddr,
-		RewardsPool: RewardAddr,
+		FeeSink:     basics.Address(FeeAddr),
+		RewardsPool: basics.Address(RewardAddr),
 	}
 	res.TxnCounter = prevHeader.TxnCounter + uint64(len(inputs))
 
