@@ -21,6 +21,7 @@ import (
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/data/transactions"
 	"github.com/algorand/go-algorand/ledger/ledgercore"
+	itypes "github.com/algorand/indexer/types"
 	"github.com/algorand/indexer/util"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
@@ -2584,17 +2585,17 @@ func (db *IndexerDb) Health(ctx context.Context) (idb.Health, error) {
 }
 
 // GetSpecialAccounts is part of idb.IndexerDB
-func (db *IndexerDb) GetSpecialAccounts(ctx context.Context) (transactions.SpecialAddresses, error) {
+func (db *IndexerDb) GetSpecialAccounts(ctx context.Context) (itypes.SpecialAddresses, error) {
 	cache, err := db.getMetastate(ctx, nil, schema.SpecialAccountsMetastateKey)
 	if err != nil {
-		return transactions.SpecialAddresses{}, fmt.Errorf("GetSpecialAccounts() err: %w", err)
+		return itypes.SpecialAddresses{}, fmt.Errorf("GetSpecialAccounts() err: %w", err)
 	}
 
 	accounts, err := encoding.DecodeSpecialAddresses([]byte(cache))
 	if err != nil {
 		err = fmt.Errorf(
 			"GetSpecialAccounts() problem decoding, cache: '%s' err: %w", cache, err)
-		return transactions.SpecialAddresses{}, err
+		return itypes.SpecialAddresses{}, err
 	}
 
 	return accounts, nil

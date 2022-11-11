@@ -15,6 +15,7 @@ import (
 	"github.com/algorand/go-algorand/data/bookkeeping"
 	"github.com/algorand/go-algorand/data/transactions"
 	"github.com/algorand/go-algorand/ledger/ledgercore"
+	itypes "github.com/algorand/indexer/types"
 
 	models "github.com/algorand/indexer/api/generated/v2"
 )
@@ -169,7 +170,7 @@ type IndexerDb interface {
 
 	// GetNextRoundToAccount returns ErrorNotInitialized if genesis is not loaded.
 	GetNextRoundToAccount() (uint64, error)
-	GetSpecialAccounts(ctx context.Context) (transactions.SpecialAddresses, error)
+	GetSpecialAccounts(ctx context.Context) (itypes.SpecialAddresses, error)
 	GetNetworkState() (NetworkState, error)
 	SetNetworkState(genesis bookkeeping.Genesis) error
 
