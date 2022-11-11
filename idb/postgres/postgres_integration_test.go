@@ -423,7 +423,7 @@ func TestRekeyBasic(t *testing.T) {
 
 	ad, err := encoding.DecodeTrimmedLcAccountData(accountDataStr)
 	require.NoError(t, err, "failed to parse account data json")
-	assert.Equal(t, test.AccountB, ad.AuthAddr)
+	assert.Equal(t, test.AccountB, types.Address(ad.AuthAddr))
 }
 
 func TestRekeyToItself(t *testing.T) {
@@ -461,7 +461,7 @@ func TestRekeyToItself(t *testing.T) {
 
 	ad, err := encoding.DecodeTrimmedLcAccountData(accountDataStr)
 	require.NoError(t, err, "failed to parse account data json")
-	assert.Equal(t, types.Address{}, ad.AuthAddr)
+	assert.Equal(t, types.Address{}, types.Address(ad.AuthAddr))
 }
 
 func TestRekeyThreeTimesInSameRound(t *testing.T) {
@@ -498,7 +498,7 @@ func TestRekeyThreeTimesInSameRound(t *testing.T) {
 
 	ad, err := encoding.DecodeTrimmedLcAccountData(accountDataStr)
 	require.NoError(t, err, "failed to parse account data json")
-	assert.Equal(t, test.AccountC, ad.AuthAddr)
+	assert.Equal(t, test.AccountC, types.Address(ad.AuthAddr))
 }
 
 func TestRekeyToItselfHasNotBeenRekeyed(t *testing.T) {
@@ -1253,11 +1253,11 @@ func TestReconfigAsset(t *testing.T) {
 		require.Equal(t, unit, asset.Params.UnitName)
 		require.Equal(t, url, asset.Params.URL)
 
-		require.Equal(t, types.Address{}, asset.Params.Manager, "Manager should have been cleared.")
-		require.Equal(t, types.Address{}, asset.Params.Reserve, "Reserve should have been cleared.")
+		require.Equal(t, types.Address{}, types.Address(asset.Params.Manager), "Manager should have been cleared.")
+		require.Equal(t, types.Address{}, types.Address(asset.Params.Reserve), "Reserve should have been cleared.")
 		// These were updated
-		require.Equal(t, test.AccountB, asset.Params.Freeze)
-		require.Equal(t, test.AccountC, asset.Params.Clawback)
+		require.Equal(t, test.AccountB, types.Address(asset.Params.Freeze))
+		require.Equal(t, test.AccountC, types.Address(asset.Params.Clawback))
 		num++
 	}
 	require.Equal(t, 1, num)
